@@ -2,6 +2,8 @@
 
 **Two people talk. AI turns their conversation into a song.**
 
+🚀 **Live demo:** https://baaton-se-gaana-by-abhishek.streamlit.app/
+
 Record a conversation in an Indian language. The app transcribes it with Sarvam AI, writes a short song from what was actually said (names, plans, jokes, feelings), and plays it back with Sarvam AI text-to-speech.
 
 ```
