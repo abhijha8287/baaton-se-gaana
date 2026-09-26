@@ -38,12 +38,17 @@ def sarvam():
     return SarvamAI(api_subscription_key=key)
 
 
+MIME_TYPES = {"wav": "audio/wav", "mp3": "audio/mpeg", "m4a": "audio/x-m4a", "webm": "audio/webm"}
+
+
 def transcribe(audio_bytes, filename, lang_code):
     client = sarvam()
+    # Set the MIME type explicitly: Linux guesses audio/vnd.wave for .wav, which Sarvam rejects
+    mime = MIME_TYPES.get(filename.rsplit(".", 1)[-1].lower(), "application/octet-stream")
     last_err = None
     for model in ("saaras:v3", None):
         try:
-            kwargs = dict(file=(filename, audio_bytes), language_code=lang_code)
+            kwargs = dict(file=(filename, audio_bytes, mime), language_code=lang_code)
             if model:
                 kwargs["model"] = model
                 kwargs["mode"] = "transcribe"
