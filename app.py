@@ -90,22 +90,29 @@ def generate_lyrics(transcript, language, style):
             return resp.choices[0].message.content.strip()
         except Exception as e:
             st.warning(f"OpenAI failed ({e}); using Sarvam instead.")
-    resp = sarvam().chat.completions(
-        model="sarvam-105b",
-        messages=[{"role": "system", "content": system}, {"role": "user", "content": prompt}],
-        temperature=0.8,
-        reasoning_effort="low",
-        max_tokens=2000,
-    )
-    text = resp.choices[0].message.content or ""
-    if "</think>" in text:
-        text = text.split("</think>", 1)[1]
-    return text.strip()
+    # reasoning_effort=None turns off thinking; otherwise the model can spend
+    # the whole token budget reasoning and return empty content
+    for _ in range(2):
+        resp = sarvam().chat.completions(
+            model="sarvam-105b",
+            messages=[{"role": "system", "content": system}, {"role": "user", "content": prompt}],
+            temperature=0.8,
+            reasoning_effort=None,
+            max_tokens=1500,
+        )
+        text = resp.choices[0].message.content or ""
+        if "</think>" in text:
+            text = text.split("</think>", 1)[1]
+        if text.strip():
+            return text.strip()
+    raise RuntimeError("Lyrics generator returned an empty response. Please try again.")
 
 
 def text_to_song(lyrics, lang_code):
     client = sarvam()
-    text = lyrics[:1500]
+    text = lyrics[:1500].strip()
+    if not text:
+        raise ValueError("No lyrics to sing.")
     last_err = None
     for model, speaker in [("bulbul:v3", s) for s in SPEAKERS] + [("bulbul:v2", "anushka")]:
         try:
